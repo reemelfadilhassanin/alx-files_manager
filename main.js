@@ -1,30 +1,15 @@
-// main.js
-// eslint-disable-next-line import/extensions
-import dbClient from './utils/db.js';
-
-const waitConnection = () => {
-  return new Promise((resolve, reject) => {
-    let i = 0;
-    const repeatFct = async () => {
-      await setTimeout(async () => {
-        i += 1;
-        if (i >= 10) {
-          reject();
-        } else if (!await dbClient.isAlive()) {
-          repeatFct();
-        } else {
-          resolve();
-        }
-      }, 1000);
-    };
-    repeatFct();
-  });
-};
+// eslint-disable-next-line linebreak-style
+import redisClient from './utils/redis';
 
 (async () => {
-  console.log(await dbClient.isAlive());
-  await waitConnection();
-  console.log(await dbClient.isAlive());
-  console.log(await dbClient.nbUsers());
-  console.log(await dbClient.nbFiles());
+    // eslint-disable-next-line indent
+console.log(redisClient.isAlive());  // Check if Redis is connected
+  console.log(await redisClient.get('myKey'));  // Should return null initially (no value for 'myKey')
+
+  await redisClient.set('myKey', 12, 5);  // Set 'myKey' with value 12 and expiration of 5 seconds
+    console.log(await redisClient.get('myKey'));  // Should return 12
+
+    setTimeout(async () => {
+        console.log(await redisClient.get('myKey'));  // After 10 seconds, should return null (expired)
+    }, 1000 * 10);
 })();

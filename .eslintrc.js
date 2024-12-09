@@ -3,6 +3,7 @@ module.exports = {
       browser: false,
       es6: true,
       jest: true,
+      "indent": ["error", 2] // Enforces 2 spaces indentation,
     },
     extends: [
       'airbnb-base',
