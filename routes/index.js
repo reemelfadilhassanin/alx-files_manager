@@ -10,12 +10,13 @@ const router = express.Router();
 router.get('/status', AppController.getStatus);
 router.get('/stats', AppController.getStats);
 
-// New routes for authentication and user retrieval
+// Authentication routes
 router.get('/connect', AuthController.getConnect);  // Sign in and generate a token
 router.get('/disconnect', AuthController.getDisconnect);  // Sign out and delete token
 router.get('/users/me', UsersController.getMe);  // Retrieve user information based on token
 
-// New route for file upload
-router.post('/files', FilesController.postUpload);  // Upload a file
+// File routes
+router.get('/files/:id', FilesController.getShow);  // Get a specific file by ID
+router.get('/files', FilesController.getIndex);  // List all files, with optional pagination
 
 export default router;
