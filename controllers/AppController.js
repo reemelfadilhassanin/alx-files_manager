@@ -1,42 +1,45 @@
 // controllers/AppController.js
-import { createClient } from 'redis';  // Redis client
-// eslint-disable-next-line import/extensions
-import dbClient from '../utils/db.js';  // DB client to check MongoDB status
+import dbClient from '../utils/db'; // Import the database client
+import redisClient from '../utils/redis'; // Import the Redis client
 
-// Create Redis client instance
-const redisClient = createClient({ url: 'redis://localhost:6379' });
+const AppController = {
 
-// Check if Redis is alive
-const checkRedis = async () => {
+  // GET /status - Check the status of Redis and DB
+  async getStatus(req, res) {
     try {
-        await redisClient.connect();
-        return true;
-    } catch (error) {
-        console.error('Redis connection error:', error);
-        return false;
+      // Check if Redis is connected
+      const redisStatus = redisClient.isAlive(); // Assuming this is a method on your redis client
+
+      // Check if DB is connected
+      await dbClient.connect(); // Assuming the connect method checks if DB is alive
+      const dbStatus = true;
+
+      // Return the status response
+      return res.status(200).json({ redis: redisStatus, db: dbStatus });
+
+    } catch (err) {
+      // If any of the connections fail
+      return res.status(500).json({ error: 'Error checking status' });
     }
+  },
+
+  // GET /stats - Get the number of users and files in DB
+  async getStats(req, res) {
+    try {
+      // Get the number of users from the database
+      const usersCount = await dbClient.db.collection('users').countDocuments();
+
+      // Get the number of files from the database
+      const filesCount = await dbClient.db.collection('files').countDocuments();
+
+      // Return the statistics
+      return res.status(200).json({ users: usersCount, files: filesCount });
+
+    } catch (err) {
+      // Handle errors during counting
+      return res.status(500).json({ error: 'Error fetching stats' });
+    }
+  }
 };
 
-// GET /status => Check if Redis and DB are alive
-export const getStatus = async (req, res) => {
-    try {
-        const redisStatus = await checkRedis();
-        const dbStatus = await dbClient.isAlive();
-        res.status(200).json({ redis: redisStatus, db: dbStatus });
-    } catch (error) {
-        console.error('Error checking status:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-};
-
-// GET /stats => Get number of users and files in DB
-export const getStats = async (req, res) => {
-    try {
-        const usersCount = await dbClient.nbUsers();
-        const filesCount = await dbClient.nbFiles();
-        res.status(200).json({ users: usersCount, files: filesCount });
-    } catch (error) {
-        console.error('Error fetching stats:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-};
+export default AppController;
