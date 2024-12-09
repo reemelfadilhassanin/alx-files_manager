@@ -1,18 +1,38 @@
-// utils/db.js
-import { MongoClient } from 'mongodb';
-import dotenv from 'dotenv';
+const { MongoClient } = require('mongodb');
 
-dotenv.config();
+class DBClient {
+    constructor() {
+        const { DB_HOST = 'localhost', DB_PORT = 27017, DB_DATABASE = 'files_manager' } = process.env;
+        this.uri = `mongodb://${DB_HOST}:${DB_PORT}`;
+        this.databaseName = DB_DATABASE;
+    }
 
-const client = new MongoClient(process.env.DB_URI, { useUnifiedTopology: true });
-let db;
+    async isAlive() {
+        try {
+            const client = new MongoClient(this.uri);
+            await client.connect();
+            await client.db(this.databaseName).command({ ping: 1 });
+            return true;
+        } catch (e) {
+            console.error('MongoDB error:', e);
+            return false;
+        }
+    }
 
-const connect = async () => {
-  if (!db) {
-    await client.connect();
-    db = client.db(process.env.DB_NAME);
-  }
-  return db;
-};
+    async nbUsers() {
+        const client = new MongoClient(this.uri);
+        const db = await client.db(this.databaseName);
+        const count = await db.collection('users').countDocuments();
+        return count;
+    }
 
-export default { connect, db: db };
+    async nbFiles() {
+        const client = new MongoClient(this.uri);
+        const db = await client.db(this.databaseName);
+        const count = await db.collection('files').countDocuments();
+        return count;
+    }
+}
+
+const dbClient = new DBClient();
+module.exports = dbClient;

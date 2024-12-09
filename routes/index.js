@@ -1,11 +1,19 @@
-// routes/index.js
-import express from 'express';
-import { getStatus, getStats } from '../controllers/AppController.js';
-
+const express = require('express');
 const router = express.Router();
 
-// Define the API routes and map to controller methods
-router.get('/status', getStatus);
-router.get('/stats', getStats);
+const AppController = require('../controllers/AppController');
+const UsersController = require('../controllers/UsersController');
+const AuthController = require('../controllers/AuthController');
+const FilesController = require('../controllers/FilesController');
 
-export default router;
+router.get('/status', AppController.getStatus);
+router.get('/stats', AppController.getStats);
+router.post('/users', UsersController.postNew);
+router.get('/connect', AuthController.getConnect);
+router.get('/disconnect', AuthController.getDisconnect);
+router.get('/users/me', UsersController.getMe);
+router.post('/files', FilesController.postUpload);
+router.get('/files', FilesController.getIndex);
+router.get('/files/:id', FilesController.getShow);
+
+module.exports = router;
