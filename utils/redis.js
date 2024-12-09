@@ -1,32 +1,60 @@
-const redis = require('redis');
-const { promisify } = require('util');
+// utils/redis.js
+import redis from 'redis';
 
 class RedisClient {
   constructor() {
+    // Create a new Redis client and handle connection errors
     this.client = redis.createClient();
-    this.getAsync = promisify(this.client.get).bind(this.client);
-    this.client.on('error', (error) => {
-      console.log(`Redis client not connected to the server: ${error.message}`);
+    this.client.on('error', (err) => {
+      console.error('Redis error: ', err);
     });
   }
 
+  // Check if Redis connection is alive
   isAlive() {
     return this.client.connected;
   }
 
+  // Get a value from Redis by key
   async get(key) {
-    return this.getAsync(key);
+    return new Promise((resolve, reject) => {
+      this.client.get(key, (err, reply) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(reply);
+        }
+      });
+    });
   }
 
+  // Set a value in Redis with an expiration time (in seconds)
   async set(key, value, duration) {
-    this.client.setex(key, duration, value);
+    return new Promise((resolve, reject) => {
+      this.client.setex(key, duration, value, (err, reply) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(reply);
+        }
+      });
+    });
   }
 
+  // Delete a value from Redis by key
   async del(key) {
-    this.client.del(key);
+    return new Promise((resolve, reject) => {
+      this.client.del(key, (err, reply) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(reply);
+        }
+      });
+    });
   }
 }
 
+// Create and export an instance of RedisClient
 const redisClient = new RedisClient();
-
 export default redisClient;
